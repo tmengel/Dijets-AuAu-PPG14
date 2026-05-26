@@ -1,7 +1,5 @@
 # sphenix external dir
-src/
-sphenix-ana-modules/
-
+src/external/
 
 # install
 install/
@@ -21,13 +19,11 @@ install/
 *.err
 *.out
 log/
+logs/
 
-# http://www.gnu.org/software/automake
+
 
 Makefile.in
-
-# http://www.gnu.org/software/autoconf
-
 autom4te.cache
 aclocal.m4
 compile
@@ -36,12 +32,11 @@ depcomp
 install-sh
 missing
 stamp-h1
-
 config.guess
 config.sub
 ltmain.sh
 
-build
+build/
 
 # Have editor/IDE/OS specific files you need to ignore? Consider using a global gitignore: 
 #
