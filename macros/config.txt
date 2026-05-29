@@ -2,7 +2,7 @@
 int verbosity 0
 int hijets_verbosity 0
 
-int num_events 10
+int num_events -1
 int run_number 31
 int first_segment 0
 int num_segments 5

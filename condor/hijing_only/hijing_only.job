@@ -1,0 +1,12 @@
+initialDir          = /sphenix/user/tmengel/Dijets-AuAu-PPG14/condor/hijing_only
+Universe            = vanilla
+Executable          = $(initialDir)/hijing_only.sh
+PeriodicHold        = (NumJobStarts>=1 && JobStatus == 1)
+request_memory      = 3GB
+batch_name          = hijing_only
+condorDir           = $(initialDir)/logs/
+Output              = $(initialDir)/logs/$(PROCESS).out
+Error               = $(initialDir)/logs/$(PROCESS).err
+Log                 = /tmp/condorjob-tmengel.log
+Arguments           = "$(PROCESS)"
+Queue 3000

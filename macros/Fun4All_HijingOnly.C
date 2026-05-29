@@ -25,8 +25,10 @@ R__LOAD_LIBRARY( libfun4all.so )
 R__LOAD_LIBRARY( libdijetana.so )
 
 
-void Fun4All_PPG14 ( 
+void Fun4All_HijingOnly ( 
     const std::string & conf_file = "config.txt" ,
+    const int user_first_segment = -1,
+    const int user_num_segments = -1,
     const std::string & user_output_file = "" 
 )
 {
@@ -44,6 +46,16 @@ void Fun4All_PPG14 (
         outfile = user_output_file;
     }
     std::cout << "Output file: " << outfile << std::endl;
+    if ( user_first_segment >= 0 )
+    {
+        ANA_SETTINGS::first_segment = user_first_segment;
+    }
+    if ( user_num_segments >= 0 )
+    {
+        ANA_SETTINGS::num_segments = user_num_segments;
+    }
+    std::cout << "First segment: " << ANA_SETTINGS::first_segment << std::endl;
+    std::cout << "Num segments: " << ANA_SETTINGS::num_segments << std::endl;
 
     // global verbosity
     Enable::VERBOSITY                   = ANA_SETTINGS::conf -> GetInt( "verbosity", 0 );
