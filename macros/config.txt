@@ -1,0 +1,30 @@
+# config
+int verbosity 0
+int hijets_verbosity 0
+
+int num_events 10
+int run_number 31
+int first_segment 0
+int num_segments 5
+
+# for hijing + pythia pT hat samps
+int jet_flag 0 
+
+int save_full_calo 1
+
+int rescale_calo_flag 0
+float upscale_calo_factor 1.0
+
+# reco jets
+int do_jets 0
+int ue_flow_flag 0
+float jet_R 0.3
+
+int event_select 0
+
+string cdbtag MDC2
+string prodtag sHijing_0_20fm
+
+string outfile output.root
+
+vstring dsts DST_CALO_CLUSTER, DST_MBD_EPD, DST_GLOBAL, G4Hits
