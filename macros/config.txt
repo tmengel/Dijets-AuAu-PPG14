@@ -2,15 +2,15 @@
 int verbosity 0
 int hijets_verbosity 0
 
-int num_events -1
+int num_events 10
 int run_number 31
 int first_segment 0
 int num_segments 5
 
 # for hijing + pythia pT hat samps
-int jet_flag 0 
+int jet_flag 10 
 
-int save_full_calo 1
+int save_full_calo 0
 
 int rescale_calo_flag 0
 float upscale_calo_factor 1.0
@@ -23,8 +23,8 @@ float jet_R 0.3
 int event_select 0
 
 string cdbtag MDC2
-string prodtag sHijing_0_20fm
+string prodtag pythia8_Jet10_sHijing_0_20fm
 
 string outfile output.root
 
-vstring dsts DST_CALO_CLUSTER, DST_MBD_EPD, DST_GLOBAL, G4Hits
+vstring dsts DST_CALO_CLUSTER, DST_MBD_EPD, DST_GLOBAL, DST_TRUTH_JETS, DST_CALO_G4HIT, DST_TRUTH_G4HIT

@@ -171,6 +171,31 @@ int AnaTree::process_event( PHCompositeNode *topNode )
         std::cout << PHWHERE << " Processing event " << m_event_id << std::endl;
     }
 
+    if ( Verbosity() > 10 )
+    {
+        std::cout << "Printing hcalout wave form and towerinfo for event " << m_event_id << std::endl;
+        auto towerinfos_wf = LoadTowerInfoContainer( topNode, "WAVEFORM_HCALOUT" );
+        auto towerinfos_calib = LoadTowerInfoContainer( topNode, "TOWERINFO_CALIB_HCALOUT" );
+        auto towerinfos_uncalib = LoadTowerInfoContainer( topNode, "TOWERS_HCALOUT" );
+        std::cout << "ieta, iphi, waveform->get_energy(), calib energy, uncalib energy" << std::endl;
+        for ( unsigned int ich = 0; ich < towerinfos_wf->size(); ich++ ) 
+        {
+            auto tower_wf = towerinfos_wf->get_tower_at_channel(ich);
+            auto tower_calib = towerinfos_calib->get_tower_at_channel(ich);
+            auto tower_uncalib = towerinfos_uncalib->get_tower_at_channel(ich);
+            if ( !tower_wf || !tower_calib || !tower_uncalib )
+            {
+                std::cout << PHWHERE << " Failed to get tower info for channel " << ich << std::endl;
+                continue;
+            }
+            unsigned int key = towerinfos_wf->encode_key(ich);
+            int ieta = towerinfos_wf->getTowerEtaBin(key);
+            int iphi = towerinfos_wf->getTowerPhiBin(key);
+            std::cout << ieta << ", " << iphi << ", " << tower_wf->get_energy() << ", " << tower_calib->get_energy() << ", " << tower_uncalib->get_energy() << std::endl;
+        }
+        return Fun4AllReturnCodes::EVENT_OK;
+    }
+
     if ( !m_gl1_node.empty() )
     {  
         // get GL1
@@ -364,7 +389,7 @@ int AnaTree::process_event( PHCompositeNode *topNode )
                 {
                     m_towerinfos = LoadTowerInfoContainer( topNode, "TOWERINFO_CALIB_HCALIN_SUB1" );
                     m_towergeom = LoadTowerGeomContainer( topNode, "TOWERGEOM_HCALIN" );
-                    tower_r = m_calo_r[1];
+                    tower_r = m_calo_r[RawTowerDefs::CalorimeterId::HCALIN-1];
                     m_caloid = RawTowerDefs::CalorimeterId::HCALIN;
                     layer_idx = 1;
                 }
@@ -372,7 +397,7 @@ int AnaTree::process_event( PHCompositeNode *topNode )
                 {
                     m_towerinfos = LoadTowerInfoContainer( topNode, "TOWERINFO_CALIB_HCALOUT_SUB1" );
                     m_towergeom = LoadTowerGeomContainer( topNode, "TOWERGEOM_HCALOUT" );
-                    tower_r = m_calo_r[2];
+                    tower_r = m_calo_r[RawTowerDefs::CalorimeterId::HCALOUT-1];
                     m_caloid = RawTowerDefs::CalorimeterId::HCALOUT;
                     layer_idx = 2;
                 }
@@ -380,7 +405,7 @@ int AnaTree::process_event( PHCompositeNode *topNode )
                 {
                     m_towerinfos = LoadTowerInfoContainer( topNode, "TOWERINFO_CALIB_CEMC_RETOWER_SUB1" );
                     m_towergeom = LoadTowerGeomContainer( topNode, "TOWERGEOM_HCALIN" );
-                    tower_r = m_calo_r[0];
+                    tower_r = m_calo_r[RawTowerDefs::CalorimeterId::CEMC-1];
                     layer_idx = 0;
                     m_caloid = RawTowerDefs::CalorimeterId::HCALIN; // use hcalin geometry for cemc towers since we just want eta/phi and the r is only used for calculating unsub pT which will be corrected by UE subtraction
                 }
@@ -617,25 +642,29 @@ std::vector<float> AnaTree::SumCaloE( PHCompositeNode *topNode,  const std::vect
 {
     std::vector<float> sumeT(3, 0.0);
 
+   
     for ( size_t ilay = 0; ilay < 3; ++ilay )   
     {
-        double tower_r = m_calo_r[ilay];
+        double tower_r =0.0;
         m_caloid = RawTowerDefs::CalorimeterId::NONE;
         m_towerinfos = LoadTowerInfoContainer( topNode, towerinfo_nodes[ilay] );
         m_towergeom = nullptr;
         if ( ilay == 0 ) 
         {
-            m_caloid = RawTowerDefs::CalorimeterId::CEMC;
+            m_caloid = RawTowerDefs::CalorimeterId::HCALIN;
+            tower_r = m_calo_r[RawTowerDefs::CalorimeterId::CEMC-1];
             m_towergeom = LoadTowerGeomContainer( topNode, "TOWERGEOM_HCALIN" );
         }
         else if ( ilay == 1 ) 
         {
             m_caloid = RawTowerDefs::CalorimeterId::HCALIN;
+            tower_r = m_calo_r[RawTowerDefs::CalorimeterId::HCALIN-1];
             m_towergeom = LoadTowerGeomContainer( topNode, "TOWERGEOM_HCALIN" );
         }
         else if ( ilay == 2 ) 
         {
             m_caloid = RawTowerDefs::CalorimeterId::HCALOUT;
+            tower_r = m_calo_r[RawTowerDefs::CalorimeterId::HCALOUT-1];
             m_towergeom = LoadTowerGeomContainer( topNode, "TOWERGEOM_HCALOUT" );
         }
 
@@ -656,6 +685,7 @@ std::vector<float> AnaTree::SumCaloE( PHCompositeNode *topNode,  const std::vect
             if ( !tower_geom )
             {
                 std::cout << PHWHERE << " Warning: cannot find geometry for tower with calo id " << static_cast<int>(m_caloid) << " and channel " << ich << ", skipping." << std::endl;
+                exit(1);
                 continue;
             }
             
