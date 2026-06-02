@@ -3,11 +3,14 @@
 
 #include <HIJetReco.C>
 
-#include <Calo_Calib.C>
+#include "Calo_Calib.C"
 
 #include "PPG14.C"
 
 #include <ffamodules/CDBInterface.h>
+#include <ffamodules/FlagHandler.h>
+#include <ffamodules/HeadReco.h>
+#include <ffamodules/SyncReco.h>
 
 #include <fun4all/Fun4AllServer.h>
 
@@ -27,6 +30,8 @@ R__LOAD_LIBRARY( libdijetana.so )
 
 void Fun4All_PPG14 ( 
     const std::string & conf_file = "config.txt" ,
+    const int user_first_segment = -1,
+    const int user_num_segments = -1,
     const std::string & user_output_file = "" 
 )
 {
@@ -38,12 +43,22 @@ void Fun4All_PPG14 (
     Init_Ana_Settings( conf_file );
 
     // output settings
-    std::string outfile                 = ANA_SETTINGS::conf -> GetString( "outfile", "myout.root" );
+    std::string outfile                 = ANA_SETTINGS::conf -> GetString( "outfile", "output.root" );
     if ( !user_output_file.empty() )
     {
         outfile = user_output_file;
     }
     std::cout << "Output file: " << outfile << std::endl;
+    if ( user_first_segment >= 0 )
+    {
+        ANA_SETTINGS::first_segment = user_first_segment;
+    }
+    if ( user_num_segments >= 0 )
+    {
+        ANA_SETTINGS::num_segments = user_num_segments;
+    }
+    std::cout << "First segment: " << ANA_SETTINGS::first_segment << std::endl;
+    std::cout << "Num segments: " << ANA_SETTINGS::num_segments << std::endl;
 
     // global verbosity
     Enable::VERBOSITY                   = ANA_SETTINGS::conf -> GetInt( "verbosity", 0 );
@@ -65,17 +80,47 @@ void Fun4All_PPG14 (
     }
 
     auto * se = Fun4AllServer::instance();
-    se -> Verbosity( Enable::VERBOSITY  );
+    se -> Verbosity( Enable::VERBOSITY + 1 );
 
     auto * rc = recoConsts::instance();
     rc -> set_StringFlag( "CDB_GLOBALTAG", ANA_SETTINGS::cdbtag );
     rc -> set_uint64Flag( "TIMESTAMP", ANA_SETTINGS::run_number );
+    if ( ANA_SETTINGS::IS_OVERLAY )
+    {
+        rc ->set_IntFlag("RUNNUMBER", 28);
+    }
     CDBInterface::instance( ) -> Verbosity( Enable::VERBOSITY );
+
+    auto * flag = new FlagHandler();
+    se -> registerSubsystem(flag);
 
     Init_Ana_Inputs();
 
+    if ( ANA_SETTINGS::IS_OVERLAY )
+    {
+    
+        auto * ctsepd = new CaloTowerStatus("SEPDSTATUS" );
+        ctsepd -> set_detector_type( CaloTowerDefs::SEPD );
+        ctsepd -> set_directURL_hotMap( "/sphenix/user/anarde/sEPD-Calib/test-54404/CDB/54404/SEPD_HotMap-ana509_2024p022_v001-54404.root" );
+        ctsepd -> set_inputNode( "TOWERINFO_COMBINED_SEPD" );
+        se->registerSubsystem( ctsepd );
+    }
+
     if ( ANA_SETTINGS::CALIBRATE_CALO ) 
     { 
+        if ( false )
+        {
+            CaloTowerDefs::BuilderType buildertype = CaloTowerDefs::kPRDFTowerv4;
+            auto * ingeom = new Fun4AllRunNodeInputManager( "DST_GEO" );
+            auto geoLocation = CDBInterface::instance() -> getUrl( "calo_geo" );
+            ingeom -> AddFile( geoLocation );
+            se -> registerInputManager( ingeom );
+        }
+        if ( ANA_SETTINGS::IS_OVERLAY )
+        {
+            Enable::DISABLE_SKIMMER = true; // for overlay we want to run on all events, so disable the skimmer which is the only thing that depends on sim vs data
+        }
+
         Process_Calo_Calib(); 
     }
 
@@ -154,6 +199,10 @@ void Fun4All_PPG14 (
         {
             atree -> add_truthjet_node ( Form( "AntiKt_Truth_r0%d", static_cast<int>(ANA_SETTINGS::jet_R * 10) ) );
         }
+    }
+    if ( ANA_SETTINGS::IS_OVERLAY && ANA_SETTINGS::jet_samp > 0 )
+    {
+        atree -> add_truthjet_node ( Form( "AntiKt_Truth_r0%d", static_cast<int>(ANA_SETTINGS::jet_R * 10) ) );
     }
     if ( ANA_SETTINGS::SAVE_FULL_CALO )
     {

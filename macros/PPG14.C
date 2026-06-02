@@ -14,8 +14,6 @@
 
 #include <HIJetReco.C>
 
-#include <Calo_Calib.C>
-
 #include <ffamodules/CDBInterface.h>
 
 #include <fun4all/Fun4AllServer.h>
@@ -34,6 +32,7 @@
 #include <calotrigger/MinimumBiasClassifier.h>
 
 #include <dijetana/AnaConf.h>
+#include <dijetana/AnaUtils.h>
 
 R__LOAD_LIBRARY( libfun4all.so )
 R__LOAD_LIBRARY( libffamodules.so )
@@ -65,6 +64,7 @@ namespace ANA_SETTINGS
 
     bool IS_SIM         = false;
     bool IS_DATA        = false;
+    bool IS_OVERLAY     = false;
 
     bool CALIBRATE_CALO = true; // always true
 
@@ -87,7 +87,11 @@ namespace ANA_SETTINGS
     std::string cdbtag {""};
     std::string prodtag {""};
     
-    std::vector<std::string> in_dsts {};    
+    std::vector<std::string> in_dsts {};  
+    
+    std::string overlay_path {""};
+    std::vector<std::string> overlay_lists {};
+
 
     AnaConf * conf { nullptr };
 
@@ -130,13 +134,32 @@ void Init_Ana_Settings( const std::string & conf_file )
 
     ANA_SETTINGS::IS_SIM                  = ( ANA_SETTINGS::run_number < 1000 );
     ANA_SETTINGS::IS_DATA                 = !ANA_SETTINGS::IS_SIM;
+    ANA_SETTINGS::IS_OVERLAY              = ( ANA_SETTINGS::conf -> GetInt( "is_overlay", 0 ) > 0 );
+   
+
     ANA_SETTINGS::cdbtag                  = ANA_SETTINGS::conf -> GetString( "cdbtag",  ANA_SETTINGS::cdbtag );
     ANA_SETTINGS::prodtag                 = ANA_SETTINGS::conf -> GetString( "prodtag", ANA_SETTINGS::prodtag );
+   
+    if ( ANA_SETTINGS::IS_OVERLAY )
+    {
+        ANA_SETTINGS::IS_SIM = false; // for overlay we want to default to data-like settings, but still allow sim-like settings if run_number < 1000
+        ANA_SETTINGS::IS_DATA = false;
+        ANA_SETTINGS::overlay_path = ANA_SETTINGS::conf -> GetString( "overlay_path", ANA_SETTINGS::overlay_path );
+        ANA_SETTINGS::overlay_lists = ANA_SETTINGS::conf -> string_vectors[ "overlay_lists" ];
+        std::cout << "Overlay mode enabled. Overlay path: " << ANA_SETTINGS::overlay_path << std::endl;
+        std::cout << "Overlay lists: ";
+        for ( const auto & list : ANA_SETTINGS::overlay_lists ) std::cout << list << " ";
+        std::cout << std::endl;
+        ANA_SETTINGS::cdbtag = ANA_SETTINGS::default_cdbtag_data;
+        ANA_SETTINGS::prodtag = "";
+    }
+
     if ( ANA_SETTINGS::cdbtag.empty() ) 
     {
         ANA_SETTINGS::cdbtag = ( ANA_SETTINGS::IS_SIM ? ANA_SETTINGS::default_cdbtag_sim : ANA_SETTINGS::default_cdbtag_data );
+        
     }
-    if ( ANA_SETTINGS::prodtag.empty() )
+    if ( ANA_SETTINGS::prodtag.empty() && !ANA_SETTINGS::IS_OVERLAY )
     {
         ANA_SETTINGS::prodtag = ( ANA_SETTINGS::IS_SIM ? ANA_SETTINGS::default_prodtag_sim : ANA_SETTINGS::default_prodtag_data );
         if ( ANA_SETTINGS::IS_SIM && ANA_SETTINGS::jet_samp > 0 )
@@ -165,6 +188,7 @@ void Init_Ana_Settings( const std::string & conf_file )
     
         std::cout << "\tANA_SETTINGS::IS_SIM = " << ( ANA_SETTINGS::IS_SIM ? "true" : "false" ) << std::endl;
         std::cout << "\tANA_SETTINGS::IS_DATA = " << ( ANA_SETTINGS::IS_DATA ? "true" : "false" ) << std::endl;
+        std::cout << "\tANA_SETTINGS::IS_OVERLAY = " << ( ANA_SETTINGS::IS_OVERLAY ? "true" : "false" ) << std::endl;
         
         // try to load cbd and prod
         
@@ -201,39 +225,70 @@ void Init_Ana_Inputs()
 
     auto * se = Fun4AllServer::instance();
 
-    for ( const auto & DSTTPYE : ANA_SETTINGS::in_dsts )
+    if ( !ANA_SETTINGS::IS_OVERLAY )
     {
-        std::cout << "\tAdding input files: " << DSTTPYE << std::endl;
-        auto * input = new Fun4AllDstInputManager( Form( "DSTINPUT_%s", DSTTPYE.c_str() ) );
-        for ( int ifile = ANA_SETTINGS::first_segment; 
-            ifile < ANA_SETTINGS::first_segment + ANA_SETTINGS::num_segments; 
-            ++ifile )
+        for ( const auto & DSTTPYE : ANA_SETTINGS::in_dsts )
         {
-            std::string infile = "";
-            if ( ANA_SETTINGS::IS_DATA )
+            std::cout << "\tAdding input files: " << DSTTPYE << std::endl;
+            auto * input = new Fun4AllDstInputManager( Form( "DSTINPUT_%s", DSTTPYE.c_str() ) );
+            for ( int ifile = ANA_SETTINGS::first_segment; 
+                ifile < ANA_SETTINGS::first_segment + ANA_SETTINGS::num_segments; 
+                ++ifile 
+            )
             {
-                infile = Form( "%s_%s-%08d-%05d.root", DSTTPYE.c_str(), ANA_SETTINGS::prodtag.c_str(), ANA_SETTINGS::run_number, ifile );
+                std::string infile = "";
+                if ( ANA_SETTINGS::IS_DATA )
+                {
+                    infile = Form( "%s_%s-%08d-%05d.root", DSTTPYE.c_str(), ANA_SETTINGS::prodtag.c_str(), ANA_SETTINGS::run_number, ifile );
+                }
+                if ( ANA_SETTINGS::IS_SIM )
+                {
+                    infile = Form( "%s_%s-%010d-%06d.root", DSTTPYE.c_str(), ANA_SETTINGS::prodtag.c_str(), ANA_SETTINGS::run_number, ifile );
+                }
+                if ( infile.empty() ) 
+                {
+                    continue;
+                }
+                std::cout << "\t\tAdding file: " << infile << std::endl;
+                input -> AddFile( infile );
             }
-            if ( ANA_SETTINGS::IS_SIM )
+            input -> Verbosity( verbosity );
+            se -> registerInputManager( input );
+        }
+    }
+    else 
+    {
+        // overlay input manager setup
+        for ( const auto & list : ANA_SETTINGS::overlay_lists )
+        {
+            auto files = AnaUtils::getFilelist( Form( "%s/%s", ANA_SETTINGS::overlay_path.c_str(), list.c_str() ) , ".root" );
+            if ( files.empty() )
             {
-                infile = Form( "%s_%s-%010d-%06d.root", DSTTPYE.c_str(), ANA_SETTINGS::prodtag.c_str(), ANA_SETTINGS::run_number, ifile );
-            }
-            if ( infile.empty() ) 
-            {
+                std::cerr << "No files found for overlay list: " << list << " in path: " << ANA_SETTINGS::overlay_path << std::endl;
                 continue;
             }
-            std::cout << "\t\tAdding file: " << infile << std::endl;
-            input -> AddFile( infile );
-        }
-        input -> Verbosity( verbosity );
-        se -> registerInputManager( input );
-    }
+            
+            std::string dst_type = list;
+            dst_type.erase( dst_type.find_last_of(".") ); // remove file extension
+            auto * input = new Fun4AllDstInputManager( Form( "DSTINPUT_%s", dst_type.c_str() ) );
 
-    CaloTowerDefs::BuilderType buildertype = CaloTowerDefs::kPRDFTowerv4;
-    auto * ingeom = new Fun4AllRunNodeInputManager( "DST_GEO" );
-    auto geoLocation = CDBInterface::instance() -> getUrl( "calo_geo" );
-    ingeom -> AddFile( geoLocation );
-    se -> registerInputManager( ingeom );
+            for ( int ifile = ANA_SETTINGS::first_segment; 
+                ifile < ANA_SETTINGS::first_segment + ANA_SETTINGS::num_segments; 
+                ++ifile 
+            )
+            {
+                if ( ifile >= files.size() )
+                {
+                    std::cerr << "Segment index " << ifile << " exceeds number of files " << files.size() << " for overlay list: " << list << std::endl;
+                    break;
+                }
+                std::cout << "\tAdding overlay file: " << files[ifile] << std::endl;
+                input -> AddFile( files[ifile] );
+            } // end loop over files in list
+            input -> Verbosity( verbosity );
+            se -> registerInputManager( input );
+        } // end loop over overlay lists
+    }
 
     if ( verbosity > 0 )
     {
@@ -252,7 +307,7 @@ void Ana_Reco()
 
     auto * se = Fun4AllServer::instance();
 
-    if ( ANA_SETTINGS::IS_DATA )  
+    if ( ANA_SETTINGS::IS_DATA )
     {
         auto * mbdreco = new MbdReco();
         se -> registerSubsystem( mbdreco );
@@ -284,10 +339,16 @@ void Ana_Reco()
         {
             ep -> set_inputNode( "TOWERINFO_CALIB_EPD" );
         }
+        if ( ANA_SETTINGS::IS_OVERLAY )
+        {
+            ep -> set_directURL_EventPlaneCalib ("/sphenix/user/anarde/sEPD-Calib/test-54404/CDB/54404/SEPD_EventPlaneCalib-ana509_2024p022_v001-54404.root");
+            ep -> set_inputNode ("TOWERINFO_COMBINED_SEPD");
+        }
         ep -> Verbosity( Enable::VERBOSITY );
         se -> registerSubsystem( ep );    
-    }
 
+    }
+    
     auto * mb = new MinimumBiasClassifier();
     if ( ANA_SETTINGS::IS_SIM )
     {
