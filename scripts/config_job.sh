@@ -87,34 +87,28 @@ find "$macroDir" -maxdepth 1 -name "*.C" -exec cp -f {} "${CONDOR_DIR}/macros/" 
 CONFIG_FILE="${CONDOR_DIR}/config.txt"
 
 cat > "$CONFIG_FILE" <<EOF
-# config
 int verbosity 0
 int hijets_verbosity 0
 
 int num_events -1
-int run_number 31
+int run_number 54404
 int first_segment 0
 int num_segments ${SEGMENTS_PER_JOB}
 
-# for hijing + pythia pT hat samps
-int jet_flag 0 
+int jet_flag 10 
 
-int save_full_calo 1
+int is_overlay 1
+string overlay_path /sphenix/user/tmengel/Dijets-AuAu-PPG14/test
+vstring overlay_lists dst_calo_cluster.list, dst_global.list, dst_truth_jet.list
 
 int rescale_calo_flag 0
 float upscale_calo_factor 1.0
 
-# reco jets
-int do_jets 0
+int do_jets 1
 int ue_flow_flag 0
 float jet_R 0.3
 
 int event_select 0
-
-string cdbtag MDC2
-string prodtag sHijing_0_20fm
-
-vstring dsts DST_CALO_CLUSTER, DST_MBD_EPD, DST_GLOBAL, G4Hits
 EOF
 
 DRIVER_FILE="${CONDOR_DIR}/${JOB_NAME}.sh"

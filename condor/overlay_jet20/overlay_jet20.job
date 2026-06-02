@@ -1,0 +1,12 @@
+initialDir          = /sphenix/user/tmengel/Dijets-AuAu-PPG14/condor/overlay_jet20
+Universe            = vanilla
+Executable          = $(initialDir)/overlay_jet20.sh
+PeriodicHold        = (NumJobStarts>=1 && JobStatus == 1)
+request_memory      = 4GB
+batch_name          = overlay_jet20
+condorDir           = $(initialDir)/logs/
+Output              = $(initialDir)/logs/$(PROCESS).out
+Error               = $(initialDir)/logs/$(PROCESS).err
+Log                 = /tmp/condorjob-tmengel.log
+Arguments           = "$(PROCESS)"
+Queue 3000
