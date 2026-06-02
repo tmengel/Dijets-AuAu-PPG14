@@ -212,6 +212,11 @@ void Fun4All_PPG14 (
             "TOWERINFO_CALIB_HCALOUT" 
         );
     }
+    atree -> save_sumeT(
+        "TOWERINFO_CALIB_CEMC_RETOWER",
+        "TOWERINFO_CALIB_HCALIN",
+        "TOWERINFO_CALIB_HCALOUT"
+    );
     atree -> Verbosity( Enable::VERBOSITY  );
     se -> registerSubsystem( atree );
 
