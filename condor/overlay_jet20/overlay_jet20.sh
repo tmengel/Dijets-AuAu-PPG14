@@ -24,8 +24,8 @@ mkdir -p "$OUTDIR"
 
 OUTFILE="${OUTDIR}/overlay_jet20_$(printf "%05d" "$PROCESS").root"
 
-ISEG=$(( PROCESS * 5 ))
-NSEGS=5
+ISEG=$(( PROCESS * 1 ))
+NSEGS=1
 
 root -l -b -q "$macro(\"$configFile\", $ISEG, $NSEGS, \"$OUTFILE\")"
 EXITCODE=$?

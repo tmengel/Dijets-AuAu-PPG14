@@ -9,4 +9,4 @@ Output              = $(initialDir)/logs/$(PROCESS).out
 Error               = $(initialDir)/logs/$(PROCESS).err
 Log                 = /tmp/condorjob-tmengel.log
 Arguments           = "$(PROCESS)"
-Queue 3000
+Queue 8403
