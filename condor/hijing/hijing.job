@@ -1,9 +1,9 @@
-initialDir          = /sphenix/user/tmengel/Dijets-AuAu-PPG14/condor/hijing_only
+initialDir          = /sphenix/user/tmengel/Dijets-AuAu-PPG14/condor/hijing
 Universe            = vanilla
-Executable          = $(initialDir)/hijing_only.sh
+Executable          = $(initialDir)/hijing.sh
 PeriodicHold        = (NumJobStarts>=1 && JobStatus == 1)
-request_memory      = 3GB
-batch_name          = hijing_only
+request_memory      = 4GB
+batch_name          = hijing
 condorDir           = $(initialDir)/logs/
 Output              = $(initialDir)/logs/$(PROCESS).out
 Error               = $(initialDir)/logs/$(PROCESS).err
