@@ -266,7 +266,12 @@ int AnaTree::process_event( PHCompositeNode *topNode )
         m_b = -999;
         m_ep_angle = -999;
         m_ecc = -999;
-        memset(m_psi_arr, -999, sizeof(m_psi_arr));
+        // memset(m_psi_arr, -999, sizeof(m_psi_arr));
+        std::fill(
+            std::begin(m_psi_arr),
+            std::end(m_psi_arr),
+            -999
+        );
         m_runnumber = -1;
         m_evtsequence = -1;
 

@@ -84,7 +84,9 @@ void AnaConf::StripComment(std::string& line)
 {
     auto pos = line.find('#');
     if (pos != std::string::npos){
-        line = line.substr(0, pos);}
+        // line = line.substr(0, pos);
+        line.resize(pos);
+    }
 }
 
 void AnaConf::Trim(std::string& s)
