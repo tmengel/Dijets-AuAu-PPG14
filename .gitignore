@@ -18,7 +18,7 @@ install/
 *.png
 *.pdf
 *.jpg 
-
+*.log
 # condor logs
 *.err
 *.out

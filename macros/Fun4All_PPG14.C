@@ -121,7 +121,7 @@ void Fun4All_PPG14 (
             Enable::DISABLE_SKIMMER = true; // for overlay we want to run on all events, so disable the skimmer which is the only thing that depends on sim vs data
         }
 
-        Process_Calo_Calib(); 
+        // Process_Calo_Calib(); 
     }
 
     if ( ANA_SETTINGS::RESCALE_CALOS )
@@ -217,7 +217,7 @@ void Fun4All_PPG14 (
         "TOWERINFO_CALIB_HCALIN",
         "TOWERINFO_CALIB_HCALOUT"
     );
-    atree -> Verbosity( Enable::VERBOSITY  );
+    atree -> Verbosity( Enable::VERBOSITY + 11  );
     se -> registerSubsystem( atree );
 
     se -> run( ANA_SETTINGS::num_events );

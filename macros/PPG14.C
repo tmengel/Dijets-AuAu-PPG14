@@ -349,26 +349,28 @@ void Ana_Reco()
 
     }
     
-    auto * mb = new MinimumBiasClassifier();
-    if ( ANA_SETTINGS::IS_SIM )
+    if ( !ANA_SETTINGS::IS_OVERLAY )
     {
-        mb -> setIsSim( true );
-        mb -> setOverwriteScale( "/sphenix/user/dlis/Projects/centrality/cdb/calibrations/scales/cdb_centrality_scale_1.root" );
-        mb -> setOverwriteVtx( "/sphenix/user/dlis/Projects/centrality/cdb/calibrations/vertexscales/cdb_centrality_vertex_scale_1.root" );
-    }
-    mb -> Verbosity( Enable::VERBOSITY );
-    se -> registerSubsystem( mb );
+        auto * mb = new MinimumBiasClassifier();
+        if ( ANA_SETTINGS::IS_SIM )
+        {
+            mb -> setIsSim( true );
+            mb -> setOverwriteScale( "/sphenix/user/dlis/Projects/centrality/cdb/calibrations/scales/cdb_centrality_scale_1.root" );
+            mb -> setOverwriteVtx( "/sphenix/user/dlis/Projects/centrality/cdb/calibrations/vertexscales/cdb_centrality_vertex_scale_1.root" );
+        }
+        mb -> Verbosity( Enable::VERBOSITY );
+        se -> registerSubsystem( mb );
 
-    auto * cr = new CentralityReco();
-    if ( ANA_SETTINGS::IS_SIM )
-    {
-        cr -> setOverwriteScale( "/sphenix/user/dlis/Projects/centrality/cdb/calibrations/scales/cdb_centrality_scale_1.root" );
-        cr -> setOverwriteVtx( "/sphenix/user/dlis/Projects/centrality/cdb/calibrations/vertexscales/cdb_centrality_vertex_scale_1.root" );
-        cr -> setOverwriteDivs( "/sphenix/user/dlis/Projects/centrality/cdb/calibrations/divs/cdb_centrality_1.root" );
+        auto * cr = new CentralityReco();
+        if ( ANA_SETTINGS::IS_SIM )
+        {
+            cr -> setOverwriteScale( "/sphenix/user/dlis/Projects/centrality/cdb/calibrations/scales/cdb_centrality_scale_1.root" );
+            cr -> setOverwriteVtx( "/sphenix/user/dlis/Projects/centrality/cdb/calibrations/vertexscales/cdb_centrality_vertex_scale_1.root" );
+            cr -> setOverwriteDivs( "/sphenix/user/dlis/Projects/centrality/cdb/calibrations/divs/cdb_centrality_1.root" );
+        }
+        cr -> Verbosity( Enable::VERBOSITY );
+        se -> registerSubsystem( cr );
     }
-    cr -> Verbosity( Enable::VERBOSITY );
-    se -> registerSubsystem( cr );
-
     return;
    
 }
