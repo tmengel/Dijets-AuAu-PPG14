@@ -8,7 +8,7 @@
 #   source setup.sh --force-build
 
 export BUILDVER="${BUILDVER:-new}"
-export INSTALLDIR="${INSTALLDIR:-$(pwd)/install}"
+export INSTALLDIR="$(pwd)/install"
 
 export sPHENIX_SETUP="/opt/sphenix/core/bin/sphenix_setup.sh"
 export LOCAL_SETUP="/opt/sphenix/core/bin/setup_local.sh"
