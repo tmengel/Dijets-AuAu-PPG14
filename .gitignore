@@ -1,6 +1,10 @@
 # sphenix external dir
 src/external/
 
+
+dev/
+working/
+
 # install
 install/
 
