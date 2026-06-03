@@ -4,7 +4,6 @@ Executable          = $(initialDir)/hijing.sh
 PeriodicHold        = (NumJobStarts>=1 && JobStatus == 1)
 request_memory      = 4GB
 batch_name          = hijing
-condorDir           = $(initialDir)/logs/
 Output              = $(initialDir)/logs/$(PROCESS).out
 Error               = $(initialDir)/logs/$(PROCESS).err
 Log                 = /tmp/condorjob-tmengel.log
