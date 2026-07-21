@@ -1,10 +1,10 @@
 #!/bin/bash
 
 # Usage:
-#   ./clean_good_jobs.sh /path/to/logs
+#   ./check_logs.sh /path/to/logs
 #
 # Example:
-#   ./clean_good_jobs.sh overlay_jet10/logs
+#   ./check_logs.sh overlay_jet10/logs
 
 logdir="${1:-}"
 
@@ -21,6 +21,8 @@ shopt -s nullglob
 
 for outfile in "$logdir"/*.out; do
     base="$(basename "$outfile" .out)"
+    #rm pass2- form base
+    base="${base#pass2-}"
     errfile="$logdir/$base.err"
 
     # Require numeric job id, e.g. 0.out, 1000.out

@@ -50,20 +50,31 @@ echo "NUM_JOBS=$NUM_JOBS"
 usage() {
     cat <<EOF
 Usage:
-  $0 <job_name> <output_dir>
+  $0 <job_name> [output_dir]
 
 Example:
   $0 sim_test /sphenix/tg/tg01/jets/${userName}/sim_test
 EOF
 }
 
-if [ "$#" -ne 2 ]; then
+if [ "$#" -ne 1 ]; then
     usage
     exit 1
 fi
 
 JOB_NAME="$1"
-OUTDIR="$(real_path "$2")"
+if [ -z "$JOB_NAME" ]; then
+    echo "Error: job_name cannot be empty"
+    usage
+    exit 1
+fi
+
+# see if there is a second argument for output directory
+if [ "$#" -ge 2 ]; then
+    OUTDIR="$2"
+else
+    OUTDIR="/sphenix/tg/tg01/${userName}/${JOB_NAME}"
+fi
 
 if [ ! -d "$macroDir" ]; then
     echo "Error: macro directory not found: $macroDir"
@@ -92,15 +103,13 @@ int verbosity 0
 int hijets_verbosity 0
 
 int num_events -1
-int run_number 54404
+int run_number 31
 int first_segment 0
 int num_segments ${SEGMENTS_PER_JOB}
 
 int jet_flag 10 
 
-int is_overlay 1
-string overlay_path /sphenix/user/tmengel/Dijets-AuAu-PPG14/test
-vstring overlay_lists dst_calo_cluster.list, dst_global.list, dst_truth_jet.list
+int is_overlay 0
 
 int rescale_calo_flag 0
 float upscale_calo_factor 1.0
@@ -110,6 +119,11 @@ int ue_flow_flag 0
 float jet_R 0.3
 
 int event_select 0
+
+string cdbtag MDC2
+string prodtag pythia8_Jet10_sHijing_0_20fm
+
+vstring dsts DST_CALO_CLUSTER, DST_MBD_EPD, DST_GLOBAL, DST_TRUTH_G4HIT, DST_TRUTH_JET, DST_CALO_G4HIT
 EOF
 
 DRIVER_FILE="${CONDOR_DIR}/${JOB_NAME}.sh"
