@@ -1,8 +1,4 @@
 # sphenix external dir
-src/external/
-
-
-dev/
 working/
 
 # install
@@ -19,12 +15,12 @@ install/
 *.pdf
 *.jpg 
 *.log
+
 # condor logs
 *.err
 *.out
 log/
 logs/
-
 
 
 Makefile.in
@@ -42,66 +38,21 @@ ltmain.sh
 
 build/
 
-# Have editor/IDE/OS specific files you need to ignore? Consider using a global gitignore: 
-#
-# * Create a file at ~/.gitignore
-# * Include files you want ignored
-# * Run: git config --global core.excludesfile ~/.gitignore
-#
-# After doing this, these files will be ignored in all your git projects,
-# saving you from having to 'pollute' every project you touch with them
-#
-# For MacOS:
-#
-.DS_Store
-
-# ignore RVM configuration
-.rvmrc
-
-# For TextMate
-*.tmproj
-tmtags
-
-# For emacs:
-*~
-\#*
-.\#*
-
-# For vim:
-*.swp
-
-#for vscode
 .vscode
 ._*
 
-# For redcar:
-.redcar
 
-# For rubinius:
-*.rbc
-
-# standard C++ Git igore
-
-# Compiled Object files
 *.slo
 *.lo
 *.o
 *.obj
-
-# Precompiled Headers
-*.gch
-*.pch
 
 # Compiled Dynamic libraries
 *.so
 *.dylib
 *.dll
 
-# Fortran module files
-*.mod
 
-# Compiled Static libraries
-*.lai
 *.la
 *.a
 *.lib
@@ -113,6 +64,4 @@ tmtags
 *.exe
 *.out
 *.app
-/.cproject
-/.project
 
